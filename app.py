@@ -1,40 +1,81 @@
+import sys
+from math import floor
+
 import pygame
 
+from enigma import Enigma
+from plugboard import Plugboard
+from reflector import Reflector
+from rotor import Rotor
 
-class App:
-    def __init__(self):
-        self._running = True
-        self._display_surf = None
-        self.size = self.weight, self.height = 640, 400
-        self.on_init()
-        self.on_execute()
+letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+keyboard = [
+    "QWERTYUIOP",
+    "ASDFGHJKL",
+    "ZXCVBNM"
+]
 
-    def on_init(self):
-        pygame.init()
-        self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
-        self._running = True
+key_size = 16
 
-    def on_event(self, event):
+black = (0, 0, 0)
+
+key_color = (128, 128, 128)
+key_color_pressed = (255, 255, 100)
+
+pressed_key = None
+
+e1 = Enigma(rotors=[
+    Rotor(position=24, type="II"),
+    Rotor(position=13, type="I"),
+    Rotor(position=22, type="III")
+],
+    plugboard=Plugboard([
+        ('A', 'M'),
+        ('F', 'I'),
+        ('N', 'V'),
+        ('P', 'S'),
+        ('T', 'U'),
+        ('W', 'Z'),
+    ]),
+    reflector=Reflector("A")
+)
+
+pygame.init()
+window = pygame.display.set_mode((800, 600))
+font = pygame.font.Font('freesansbold.ttf', 16)
+
+pygame.display.flip()
+
+
+def draw_keyboard(pos):
+    row_num = 0
+    y = pos[1]
+    for row in keyboard:
+        x = pos[0] + (row_num * key_size)
+        for char in row:
+            draw_letter(char, (x, y))
+            x += floor(key_size * 2.2)
+        y += floor(key_size * 2.4)
+        row_num += 1
+
+
+def draw_letter(char, pos):
+    pygame.draw.circle(window, key_color_pressed if char == pressed_key else key_color, pos, key_size)
+    text_surface = font.render(char, True, black)
+    window.blit(text_surface, (pos[0] - (key_size / 2), pos[1] - (key_size / 2)))
+
+
+while True:
+    window.fill(black)
+    draw_keyboard((100, 100))
+
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            self._running = False
-
-    def on_loop(self):
-        pass
-
-    def on_render(self):
-        pass
-
-    def on_cleanup(self):
-        pygame.quit()
-
-    def on_execute(self):
-        while self._running:
-            for event in pygame.event.get():
-                self.on_event(event)
-            self.on_loop()
-            self.on_render()
-        self.on_cleanup()
-
-
-if __name__ == "__main__":
-    theApp = App()
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if chr(event.key).upper() in letters:
+                pressed_key = chr(event.key).upper()
+        if event.type == pygame.KEYUP:
+            pressed_key = None
+    pygame.display.flip()
