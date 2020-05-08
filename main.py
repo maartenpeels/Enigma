@@ -1,7 +1,7 @@
 from enigma import Enigma
-from rotor import Rotor
-from reflector import Reflector
 from plugboard import Plugboard
+from reflector import Reflector
+from rotor import Rotor
 
 e1 = Enigma(rotors=[
         Rotor(position=24, type="II"),
